@@ -1,0 +1,98 @@
+/* Stile für den Honig-Shop */
+
+/* Grundlegende Anpassungen */
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* Hero Section */
+.hero-section {
+    background-image: url('https://via.placeholder.com/1200x300');
+    background-size: cover;
+    background-position: center;
+    color: #333;
+    padding: 80px 0;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4a4a4a;
+}
+
+.hero-section p {
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.hero-section .btn-primary {
+    padding: 10px 30px;
+    font-size: 1.1rem;
+}
+
+/* Produktkarten */
+.product-gallery .card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.product-gallery .card:hover {
+    transform: scale(1.05);
+}
+
+.product-gallery .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.product-gallery .card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.product-gallery .price {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #e68a00;
+    margin: 10px 0;
+}
+
+.product-gallery .btn-primary {
+    background-color: #f0ad4e;
+    border-color: #f0ad4e;
+}
+
+.product-gallery .btn-primary:hover {
+    background-color: #d98230;
+    border-color: #d98230;
+}
+
+/* Footer */
+footer {
+    background-color: #343a40;
+    color: #ffffff;
+    padding: 20px 0;
+}
+
+footer p, footer a {
+    color: #ffffff;
+    margin: 0;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Medienanpassungen */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+    }
+}

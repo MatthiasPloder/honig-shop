@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honig-Shop</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1>Unser Honig-Shop</h1>
+    <div class="row">
+        <!-- Beispielprodukt: Blütenhonig -->
+        <div class="col-md-4">
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Blütenhonig">
+                <div class="card-body">
+                    <h5 class="card-title">Blütenhonig</h5>
+                    <p class="card-text">Natürlicher Blütenhonig aus regionalen Blüten.</p>
+                    <p class="card-text">Preis: 5.99€</p>
+                    
+                    <!-- Dropdown zur Auswahl der Größe -->
+                    <label for="size">Größe auswählen:</label>
+                    <select class="form-control" id="size">
+                        <option value="250g">250g</option>
+                        <option value="500g">500g</option>
+                        <option value="1kg">1kg</option>
+                    </select>
+
+                    <button class="btn btn-primary mt-3" onclick="addToCart(1)">In den Warenkorb</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weitere Produkte... -->
+
+    </div>
+</div>
+
+<script>
+    function addToCart(productId) {
+        const size = document.getElementById("size").value; // Get selected size
+        console.log("Produkt ID: " + productId + " Größe: " + size);
+
+        // Hier kannst du dann das Produkt und die gewählte Größe an den Warenkorb oder Server weiterleiten
+        alert("Produkt " + productId + " in Größe " + size + " wurde zum Warenkorb hinzugefügt!");
+
+    }
+</script>
+
+</body>
+</html>
