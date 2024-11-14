@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Produkt hinzufügen</title>
+</head>
+<body>
+    <h1>Produkt hinzufügen</h1>
+    <form action="add_product.php" method="post">
+        <label for="productname">Produktname:</label><br>
+        <input type="text" id="productname" name="productname" required><br>
+
+        <label for="description">Beschreibung:</label><br>
+        <textarea id="description" name="description"></textarea><br>
+
+        <label for="price">Preis:</label><br>
+        <input type="number" id="price" name="price" step="0.01" required><br>
+
+        <label for="weight">Gewicht:</label><br>
+        <input type="number" id="weight" name="weight"><br>
+
+        <label for="stock_quantity">Bestandsmenge:</label><br>
+        <input type="number" id="stock_quantity" name="stock_quantity" value="0"><br>
+
+        <label for="image_url">Bild-URL:</label><br>
+        <input type="text" id="image_url" name="image_url"><br>
+
+        <label for="category_id">Kategorie-ID:</label><br>
+        <input type="number" id="category_id" name="category_id"><br>
+
+        <input type="submit" value="Produkt hinzufügen">
+    </form>
+</body>
+</html>

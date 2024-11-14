@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Honig-Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
     <!-- Header / Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
         <div class="container">
-            <a class="navbar-brand" href="index.html">Honig-Shop</a>
+            <a class="navbar-brand" href="index.html">
+                <img src="assets/images/logo.png" alt="Honig-Shop Logo" height="40">
+                Honig-Shop
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -21,29 +24,114 @@
                     <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="produkte.html">Produkte</a></li>
                     <li class="nav-item"><a class="nav-link" href="ueber-uns.html">Über Uns</a></li>
-                    <li class="nav-item"><a class="nav-link" href="warenkorb.html">Warenkorb</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="warenkorb.html">
+                            <i class="bi bi-cart"></i> Warenkorb
+                            <span class="badge bg-danger cart-badge cart-count">0</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <header class="hero-section text-center py-5">
-        <div class="container">
-            <h1>Willkommen im Honig-Shop</h1>
-            <p class="lead">Entdecken Sie unsere Vielfalt an natürlichen Honigsorten, Kerzen und mehr!</p>
-            <a href="produkte.html" class="btn btn-primary btn-lg">Jetzt durchstöbern!</a>
-        </div>
-    </header>
+    <!-- Hauptinhalt -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <header class="hero-section text-center py-5">
+            <div class="container">
+                <h1>Willkommen im Honig-Shop</h1>
+                <p class="lead">Entdecken Sie unsere Vielfalt an natürlichen Honigsorten, Kerzen und mehr!</p>
+                <a href="produkte.html" class="btn btn-primary btn-lg">Jetzt durchstöbern!</a>
+            </div>
+        </header>
+
+        <!-- Featured Products -->
+        <section class="featured-products py-5 bg-light">
+            <div class="container">
+                <h2 class="text-center mb-4">Unsere Bestseller</h2>
+                <div class="row" id="featured-products">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light text-center py-4">
+    <footer>
         <div class="container">
-            <p>&copy; 2023 Honig-Shop. Alle Rechte vorbehalten.</p>
-            <p><a href="#" class="text-light">Datenschutz</a> | <a href="#" class="text-light">AGB</a></p>
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Kontakt</h5>
+                    <p>
+                        Honig-Shop GmbH<br>
+                        Bienenweg 123<br>
+                        12345 Honigstadt<br>
+                        Tel: +49 123 456789<br>
+                        E-Mail: info@honig-shop.de
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="impressum.html" class="text-light">Impressum</a></li>
+                        <li><a href="datenschutz.html" class="text-light">Datenschutz</a></li>
+                        <li><a href="agb.html" class="text-light">AGB</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Newsletter</h5>
+                    <form class="mb-3">
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Ihre E-Mail-Adresse">
+                            <button class="btn btn-warning" type="submit">Anmelden</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <hr class="mt-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2024 Honig-Shop. Alle Rechte vorbehalten.</p>
+            </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/cart.js"></script>
+    <script>
+        const cart = new ShoppingCart();
+        
+        // Lade Featured Products
+        async function loadFeaturedProducts() {
+            try {
+                const response = await fetch('index.php?action=get_featured_products');
+                const products = await response.json();
+                const container = document.getElementById('featured-products');
+                
+                products.slice(0, 3).forEach(product => {
+                    const productHtml = `
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <img src="${product.image_url || 'assets/images/placeholder.jpg'}" 
+                                     class="card-img-top" alt="${product.productname}">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">${product.productname}</h5>
+                                    <p class="card-text">${product.description}</p>
+                                    <p class="price">€${parseFloat(product.price).toFixed(2)}</p>
+                                    <a href="produkte.html" class="btn btn-primary mt-auto">Zum Produkt</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += productHtml;
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Featured Products:', error);
+            }
+        }
+
+        // Lade Featured Products beim Seitenaufruf
+        loadFeaturedProducts();
+    </script>
 </body>
 </html>
