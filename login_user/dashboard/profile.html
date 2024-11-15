@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mein Profil - Honig-Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .profile-container {
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .profile-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .profile-header {
+            background-color: #fff8e1;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+        <div class="container">
+            <a class="navbar-brand" href="../../index.html">
+                <img src="../../assets/images/logo.png" alt="Honig-Shop Logo" height="40">
+                Honig-Shop
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" onclick="handleLogout()">
+                            <i class="bi bi-box-arrow-right"></i> Ausloggen
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hauptinhalt -->
+    <div class="container profile-container">
+        <div class="profile-header">
+            <h2><i class="bi bi-person-circle"></i> Mein Profil</h2>
+            <p class="mb-0">Hier können Sie Ihre persönlichen Daten verwalten.</p>
+        </div>
+
+        <div class="row">
+            <!-- Persönliche Daten -->
+            <div class="col-md-6 mb-4">
+                <div class="profile-card p-4">
+                    <h3 class="mb-4">Persönliche Daten</h3>
+                    <form id="profileForm" onsubmit="updateProfile(event)">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-Mail</label>
+                            <input type="email" class="form-control" id="email" name="email" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">Vorname</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Nachname</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Telefon</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                        <button type="submit" class="btn btn-warning">Speichern</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Passwort ändern -->
+            <div class="col-md-6 mb-4">
+                <div class="profile-card p-4">
+                    <h3 class="mb-4">Passwort ändern</h3>
+                    <form id="passwordForm" onsubmit="updatePassword(event)">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Aktuelles Passwort</label>
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Neues Passwort</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Passwort bestätigen</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning">Passwort ändern</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Adressen -->
+            <div class="col-12 mb-4">
+                <div class="profile-card p-4">
+                    <h3 class="mb-4">Meine Adressen</h3>
+                    <div id="addressList">
+                        <!-- Wird dynamisch gefüllt -->
+                    </div>
+                    <button class="btn btn-warning mt-3" onclick="showAddAddressForm()">
+                        <i class="bi bi-plus-circle"></i> Neue Adresse hinzufügen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const response = await fetch('../api/get_profile.php');
+            const result = await response.json();
+            
+            if (result.status === 'error') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            const data = result.data;
+            
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('firstName').value = data.first_name || '';
+            document.getElementById('lastName').value = data.last_name || '';
+            document.getElementById('phone').value = data.phone_number || '';
+            
+        } catch (error) {
+            console.error('Fehler beim Laden der Profildaten:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Fehler',
+                text: 'Die Profildaten konnten nicht geladen werden.'
+            });
+        }
+    });
+
+    // Profil aktualisieren
+    async function updateProfile(event) {
+        event.preventDefault();
+        
+        try {
+            const formData = new FormData(event.target);
+            const response = await fetch('../api/update_profile.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Erfolg',
+                    text: 'Ihre Profildaten wurden erfolgreich aktualisiert.'
+                });
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Fehler',
+                text: error.message || 'Die Profildaten konnten nicht aktualisiert werden.'
+            });
+        }
+    }
+
+    // Passwort ändern
+    async function updatePassword(event) {
+        event.preventDefault();
+        
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Fehler',
+                text: 'Die Passwörter stimmen nicht überein.'
+            });
+            return;
+        }
+        
+        try {
+            const formData = new FormData(event.target);
+            const response = await fetch('../api/update_password.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Erfolg',
+                    text: 'Ihr Passwort wurde erfolgreich geändert.'
+                });
+                event.target.reset();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Fehler',
+                text: error.message || 'Das Passwort konnte nicht geändert werden.'
+            });
+        }
+    }
+
+    // Adressen laden
+    async function loadAddresses() {
+        try {
+            const response = await fetch('../api/get_addresses.php');
+            const data = await response.json();
+            
+            const addressList = document.getElementById('addressList');
+            addressList.innerHTML = data.addresses.map(address => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">${address.type || 'Adresse'}</h5>
+                        <p class="card-text">
+                            ${address.street}<br>
+                            ${address.zip} ${address.city}<br>
+                            ${address.country}
+                        </p>
+                        <button class="btn btn-sm btn-warning" onclick="editAddress(${address.id})">
+                            <i class="bi bi-pencil"></i> Bearbeiten
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAddress(${address.id})">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Fehler beim Laden der Adressen:', error);
+        }
+    }
+
+    // Neue Adresse hinzufügen
+    function showAddAddressForm() {
+        Swal.fire({
+            title: 'Neue Adresse hinzufügen',
+            html: `
+                <input id="street" class="swal2-input" placeholder="Straße und Hausnummer">
+                <input id="zip" class="swal2-input" placeholder="PLZ">
+                <input id="city" class="swal2-input" placeholder="Stadt">
+                <input id="country" class="swal2-input" placeholder="Land">
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Speichern',
+            cancelButtonText: 'Abbrechen',
+            preConfirm: () => {
+                return {
+                    street: document.getElementById('street').value,
+                    zip: document.getElementById('zip').value,
+                    city: document.getElementById('city').value,
+                    country: document.getElementById('country').value
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                saveNewAddress(result.value);
+            }
+        });
+    }
+
+    // Neue Adresse speichern
+    async function saveNewAddress(addressData) {
+        try {
+            const response = await fetch('../api/add_address.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(addressData)
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Erfolg',
+                    text: 'Die Adresse wurde hinzugefügt.'
+                });
+                loadAddresses();
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Fehler',
+                text: error.message || 'Die Adresse konnte nicht gespeichert werden.'
+            });
+        }
+    }
+    </script>
+    <script src="../assets/js/auth.js"></script>
+</body>
+</html> 

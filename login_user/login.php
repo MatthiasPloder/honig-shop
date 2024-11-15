@@ -1,8 +1,6 @@
 <?php
-// Start the session to track user login status
 session_start();
 
-// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get the form data (email and password)
     $email = $_POST['email'];
@@ -40,21 +38,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (password_verify($password, $db_password)) {
             // Login successful, start session and store user data
             $_SESSION['user_id'] = $id;
-            $_SESSION['email'] = $db_email;			
-            header('Location: dashboard/dashboard.html'); // Korrigierter Pfad zum Dashboard
-            exit();
+            $_SESSION['email'] = $db_email;
+            
+            // Setze Cookies für "Remember Me" (30 Tage)
+            setcookie('user_id', $id, time() + (86400 * 30), '/');
+            setcookie('user_email', $db_email, time() + (86400 * 30), '/');
+            
+            // Sende JSON-Antwort statt Weiterleitung
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Login erfolgreich'
+            ]);
         } else {
-            // Invalid password
-            echo "Ungültiges Passwort";
-			
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Ungültiges Passwort'
+            ]);
         }
     } else {
-        // No user found with that email
-		echo "Kein Konto mit dieser E-Mail-Adresse gefunden";
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Kein Konto mit dieser E-Mail-Adresse gefunden'
+        ]);
     }
-
-    // Close the statement and connection
-    $stmt->close();
-    $mysqli->close();
+} else {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Ungültige Anfrage'
+    ]);
 }
+
+$stmt->close();
+$mysqli->close();
 ?>

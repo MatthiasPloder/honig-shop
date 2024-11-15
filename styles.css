@@ -125,3 +125,52 @@ footer a:hover {
         height: 150px;
     }
 }
+
+/* Über Uns Seite */
+.about-hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('assets/images/imkerei-hero.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 120px 0;
+    margin-top: 76px; /* Wegen fixed Navbar */
+    text-align: center;
+}
+
+.about-section {
+    padding: 60px 0;
+}
+
+.feature-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.timeline-item {
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    margin-bottom: 30px;
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.bee-facts {
+    background-color: #fff8e1;
+    padding: 60px 0;
+    margin: 40px 0;
+}
+
+.contact-info {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}

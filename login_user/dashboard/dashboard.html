@@ -29,8 +29,8 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
-                <img src="../assets/images/logo.png" alt="Honig-Shop Logo" height="40">
+            <a class="navbar-brand" href="../../index.html">
+                <img src="../../assets/images/logo.png" alt="Honig-Shop Logo" height="40">
                 Honig-Shop
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -44,85 +44,117 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="logout.php">
+                        <button class="nav-link btn btn-link" onclick="handleLogout()">
                             <i class="bi bi-box-arrow-right"></i> Ausloggen
-                        </a>
+                        </button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container dashboard-container">
-        <div class="card welcome-card p-4">
-            <h2><i class="bi bi-person-check"></i> Willkommen zurück!</h2>
-            <p class="mb-0">Schön, dass du wieder da bist. Was möchtest du heute tun?</p>
-        </div>
-
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card dashboard-card">
-                    <div class="card-body text-center">
-                        <i class="bi bi-cart-fill fs-1 text-warning mb-3"></i>
-                        <h5 class="card-title">Meine Bestellungen</h5>
-                        <p class="card-text">Siehe deine aktuellen und vergangenen Bestellungen ein.</p>
-                        <a href="#" class="btn btn-warning">Zu den Bestellungen</a>
-                    </div>
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="logoutToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Sie wurden erfolgreich ausgeloggt. Sie werden zur Startseite weitergeleitet...
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card dashboard-card">
-                    <div class="card-body text-center">
-                        <i class="bi bi-gear-fill fs-1 text-warning mb-3"></i>
-                        <h5 class="card-title">Kontoeinstellungen</h5>
-                        <p class="card-text">Verwalte deine persönlichen Daten und Einstellungen.</p>
-                        <a href="#" class="btn btn-warning">Einstellungen ändern</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card dashboard-card">
-                    <div class="card-body text-center">
-                        <i class="bi bi-heart-fill fs-1 text-warning mb-3"></i>
-                        <h5 class="card-title">Wunschliste</h5>
-                        <p class="card-text">Sieh dir deine gespeicherten Lieblingsprodukte an.</p>
-                        <a href="#" class="btn btn-warning">Zur Wunschliste</a>
-                    </div>
-                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
-
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card dashboard-card">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-bell"></i> Neueste Mitteilungen</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Neue Honigsorte verfügbar!</li>
-                            <li class="list-group-item">10% Rabatt auf alle Blütenhonige</li>
-                            <li class="list-group-item">Kostenloser Versand ab 50€</li>
-                        </ul>
-                    </div>
+        
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    Beim Ausloggen ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.
                 </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card dashboard-card">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-star"></i> Empfohlene Produkte</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Bio-Akazienhonig</li>
-                            <li class="list-group-item">Waldhonig aus der Region</li>
-                            <li class="list-group-item">Honig-Geschenkset</li>
-                        </ul>
-                    </div>
-                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
 
+    <div class="container dashboard-container">
+        <div id="dashboard-content">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const response = await fetch('../api/dashboard_data.php');
+            const data = await response.json();
+            
+            if (data.status === 'error') {
+                // Bei nicht eingeloggtem Status zum Login weiterleiten
+                window.location.href = '../login.html';
+                return;
+            }
+
+            // Dashboard-Inhalt nur anzeigen wenn erfolgreich eingeloggt
+            if (data.status === 'success') {
+                const dashboardHTML = `
+                    <div class="card welcome-card p-4">
+                        <h2><i class="bi bi-person-check"></i> Willkommen zurück, ${data.email}!</h2>
+                        <p class="mb-0">Schön, dass du wieder da bist. Was möchtest du heute tun?</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card dashboard-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Benachrichtigungen</h5>
+                                    <ul class="list-unstyled">
+                                        ${data.notifications.map(note => `
+                                            <li><i class="bi bi-bell"></i> ${note}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('dashboard-content').innerHTML = dashboardHTML;
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Dashboard-Daten:', error);
+            // Bei Fehlern auch zum Login weiterleiten
+            window.location.href = '../login.html';
+        }
+    });
+    </script>
+
+    <script>
+        // Logout-Funktion
+        async function handleLogout() {
+            try {
+                // Korrigierter Pfad zur process_logout.php (ein Verzeichnis zurück, dann zu api)
+                const response = await fetch('../api/process_logout.php');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Toast anzeigen
+                    const toast = new bootstrap.Toast(document.getElementById('logoutToast'));
+                    toast.show();
+                    
+                    // Nach kurzer Verzögerung zur Startseite weiterleiten
+                    setTimeout(() => {
+                        window.location.href = '../../index.html';
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Fehler beim Ausloggen');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Fehlermeldung anzeigen
+                const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+                errorToast.show();
+            }
+        }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/auth.js"></script>
 </body>
 </html>
