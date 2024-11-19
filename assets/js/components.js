@@ -1,46 +1,56 @@
 // Navigation und Footer laden
 class Components {
     static async loadNavigation() {
-        try {
-            const navHtml = `
-                <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
-                    <div class="container">
-                        <a class="navbar-brand" href="index.html">
-                            <img src="assets/images/logo.png" alt="Honig-Shop Logo" height="40">
-                            Honig-Shop
-                        </a>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarNav">
-                            <ul class="navbar-nav ms-auto">
-                                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                                <li class="nav-item"><a class="nav-link" href="produkte.html">Produkte</a></li>
-                                <li class="nav-item"><a class="nav-link" href="ueber-uns.html">Über Uns</a></li>
-                            </ul>
-                            <ul class="navbar-nav">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="warenkorb.html">
-                                        <i class="bi bi-cart"></i> Warenkorb
-                                        <span class="badge bg-danger cart-badge cart-count">0</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-person"></i> <span id="accountText">Account</span>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end" id="accountDropdown" aria-labelledby="navbarDropdown">
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
+        const navHtml = `
+            <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+                <div class="container">
+                    <a class="navbar-brand" href="/honig-shop/index.html">
+                        <img src="/honig-shop/img/platzhalter.jpg" alt="Platzhalter" height="40">
+                        Imkerei Ploder
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/honig-shop/index.html">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/honig-shop/produkte.html">Produkte</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/honig-shop/ueber-uns.html">Über uns</a>
+                            </li>
+                        </ul>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/honig-shop/warenkorb.html">
+                                    <i class="bi bi-cart3"></i>
+                                    <span class="cart-count badge bg-danger">0</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="accountDropdownLink" 
+                                   role="button" data-bs-toggle="dropdown">
+                                    <i class="bi"></i>
+                                    <span id="accountText">Account</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" id="accountDropdown">
+                                    <li><a class="dropdown-item" href="/honig-shop/login_user/login.html">Login</a></li>
+                                    <li><a class="dropdown-item" href="/honig-shop/login_user/register.html">Registrieren</a></li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
-                </nav>`;
-
-            document.body.insertAdjacentHTML('afterbegin', navHtml);
-            console.log('Navigation geladen'); // Debug-Log
-        } catch (error) {
-            console.error('Fehler beim Laden der Navigation:', error);
+                </div>
+            </nav>
+        `;
+        document.body.insertAdjacentHTML('afterbegin', navHtml);
+        
+        // Nach dem Einfügen der Navigation den Cart-Count aktualisieren
+        if (window.cart) {
+            window.cart.updateCartCount();
         }
     }
 
@@ -53,11 +63,11 @@ class Components {
                             <div class="col-md-4">
                                 <h5>Kontakt</h5>
                                 <p>
-                                    Honig-Shop GmbH<br>
-                                    Bienenweg 123<br>
-                                    12345 Honigstadt<br>
-                                    Tel: +49 123 456789<br>
-                                    E-Mail: info@honig-shop.de
+                                    Imkerei Ploder<br>
+                                    Glauning 118<br>
+                                    8093 Wittmannsdorf<br>
+                                    Tel: +43 664 123456<br>
+                                    E-Mail: haplo522@hotmail.com
                                 </p>
                             </div>
                             <div class="col-md-4">

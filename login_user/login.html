@@ -3,83 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Honig-Shop</title>
+    <title>Login - Honig Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../styles.css">
-    <style>
-        .login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .btn-warning {
-            width: 100%;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation von index.html kopieren und anpassen -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
-        <div class="container">
-            <a class="navbar-brand" href="../index.html">
-                <img src="../assets/images/logo.png" alt="Honig-Shop Logo" height="40">
-                Honig-Shop
-            </a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="login-container">
-            <h2 class="text-center mb-4">Login</h2>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title text-center mb-4">Login</h3>
+                        <form id="loginForm" onsubmit="handleLogin(event)">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-Mail</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Passwort</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Einloggen</button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="register.html">Noch kein Konto? Hier registrieren</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="password">Passwort:</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-warning mt-3">Anmelden</button>
-            </form>
-            <p class="text-center mt-3">
-                Noch kein Konto? <a href="register.html">Jetzt registrieren</a>
-            </p>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    async function handleLogin(event) {
-        event.preventDefault();
-        
-        const formData = new FormData(event.target);
-        
-        try {
-            const response = await fetch('login.php', {
-                method: 'POST',
-                body: formData
-            });
+        async function handleLogin(event) {
+            event.preventDefault();
             
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                window.location.href = 'dashboard/dashboard.html';
-            } else {
-                alert(data.message);
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/honig-shop/login_user/api/process_login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Login erfolgreich',
+                        text: 'Sie werden weitergeleitet...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    
+                    // Speichere Benutzerinformationen im sessionStorage
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Korrigierte Weiterleitung
+                    window.location.href = '/honig-shop/login_user/dashboard/dashboard.html';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Login fehlgeschlagen',
+                    text: error.message || 'Bitte überprüfen Sie Ihre Eingaben'
+                });
             }
-        } catch (error) {
-            console.error('Login-Fehler:', error);
-            alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
         }
-    }
+
+        // Prüfe beim Laden der Seite, ob der Benutzer bereits eingeloggt ist
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/honig-shop/login_user/api/check_auth.php');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.isLoggedIn) {
+                    window.location.href = '/honig-shop/login_user/dashboard/dashboard.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        });
     </script>
 </body>
 </html>

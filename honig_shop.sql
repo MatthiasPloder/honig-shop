@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 14. Nov 2024 um 20:16
+-- Erstellungszeit: 19. Nov 2024 um 11:05
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -37,7 +37,11 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`category_id`, `category_name`) VALUES
-(1, 'Honig');
+(1, 'Honig'),
+(2, 'Kerzen'),
+(3, 'Likör'),
+(4, 'Oxymel'),
+(5, 'Sets');
 
 -- --------------------------------------------------------
 
@@ -56,6 +60,13 @@ CREATE TABLE `orders` (
   `user_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Daten für Tabelle `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `order_date`, `total_price`, `shipping_address`, `billing_address`, `order_status`, `payment_status`, `user_id`) VALUES
+(16, '2024-11-19 09:26:00', 197.50, 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'pending', 'unpaid', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -70,6 +81,15 @@ CREATE TABLE `order_items` (
   `price` decimal(10,2) DEFAULT NULL,
   `total_price` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Daten für Tabelle `order_items`
+--
+
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `quantity`, `price`, `total_price`) VALUES
+(7, 16, 1, 3, 8.50, 25.50),
+(8, 16, 2, 8, 17.00, 136.00),
+(9, 16, 3, 4, 9.00, 36.00);
 
 -- --------------------------------------------------------
 
@@ -107,10 +127,15 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`product_id`, `productname`, `description`, `price`, `weight`, `stock_quantity`, `image_url`, `category_id`) VALUES
 (1, 'Blütenhonig', 'Regionaler Blütenhonig aus der Süd-Ost-Steiermark', 8.50, 500, 500, 'Blütenhonig.jpeg', 1),
-(2, 'Kastanienhonig', 'Kastanienhonig aus Ligist', 9.00, 500, 500, 'Kastanienhonig.jpeg', 1),
+(2, 'Kastanienhonig', 'Kastanienhonig aus Ligist', 17.00, 1000, 500, 'Kastanienhonig.jpeg', 1),
 (3, 'Waldhonig', 'Waldhonig vom Gaberl', 9.00, 500, 500, 'Waldhonig.jpeg', 1),
 (7, 'Cremehonig', 'excelenter CremeHonig der AUf jedem Brot obenbleibt', 8.50, 500, 500, 'Cremehonig.jpeg', 1),
-(8, 'Lindenblütenhonig', 'excelenter Lindenblütenhonig aus der Südost-Steiermark', 8.50, 500, 500, 'Lindenblütenhonig.jpeg', 1);
+(8, 'Lindenblütenhonig', 'excelenter Lindenblütenhonig aus der Südost-Steiermark', 8.50, 500, 500, 'Lindenblütenhonig.jpeg', 1),
+(9, 'Blütenhonig', 'Regionaler Blütenhonig aus der Süd-Ost-Steiermark', 16.00, 1000, 500, 'Blütenhonig.jpeg', 1),
+(10, 'Kastanienhonig', 'Kastanienhonig aus Ligist', 9.00, 500, 500, 'Kastanienhonig.jpeg', 1),
+(11, 'Waldhonig', 'Waldhonig vom Gaberl', 17.00, 1000, 500, 'Waldhonig.jpeg', 1),
+(12, 'Cremehonig', 'excelenter CremeHonig der AUf jedem Brot obenbleibt', 16.00, 1000, 500, 'Cremehonig.jpeg', 1),
+(13, 'Lindenblütenhonig', 'excelenter Lindenblütenhonig aus der Südost-Steiermark', 16.00, 1000, 500, 'Lindenblütenhonig.jpeg', 1);
 
 -- --------------------------------------------------------
 
@@ -155,15 +180,17 @@ CREATE TABLE `users` (
   `shipping_address` text DEFAULT NULL,
   `billing_address` text DEFAULT NULL,
   `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
-  `last_login` timestamp NULL DEFAULT NULL
+  `last_login` timestamp NULL DEFAULT NULL,
+  `auth_token` varchar(64) DEFAULT NULL,
+  `token_expires` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `shipping_address`, `billing_address`, `date_created`, `last_login`) VALUES
-(1, 'Matthias', 'Ploder', 'plodermatthias@gmail.com', '$2y$10$tDKbY65635ztuIz7GZ35yOHbZrvgS0WJJ3V0K.WP5XIzCPjHgu1wW', '06769019668', 'Zerlacherweg 30', NULL, '2024-11-14 17:19:12', NULL);
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `shipping_address`, `billing_address`, `date_created`, `last_login`, `auth_token`, `token_expires`) VALUES
+(1, 'Matthias', 'Ploder', 'plodermatthias@gmail.com', '$2y$10$2KUMGLo3A9JWy8v7Md8yduHOUxaURNUiO2a.KZk.MpUH4cGPW2P3K', '06769019668', '[{\"street\":\"Zerlacherweg 30\",\"postalCode\":\"8053\",\"city\":\"Graz\",\"country\":\"\\u00d6sterreich\"}]', NULL, '2024-11-14 17:19:12', '2024-11-19 09:08:40', 'a07c1ee2c7b1e01e9a9ffbf0bc008a6c54b7142394ddaa6ec299ebd0de942284', '2024-12-19 10:08:40');
 
 --
 -- Indizes der exportierten Tabellen
@@ -224,7 +251,8 @@ ALTER TABLE `shopping_cart`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_auth_token` (`auth_token`);
 
 --
 -- AUTO_INCREMENT für exportierte Tabellen
@@ -234,19 +262,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT für Tabelle `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT für Tabelle `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT für Tabelle `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT für Tabelle `payments`
@@ -258,7 +286,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT für Tabelle `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT für Tabelle `shipping`
@@ -270,7 +298,7 @@ ALTER TABLE `shipping`
 -- AUTO_INCREMENT für Tabelle `shopping_cart`
 --
 ALTER TABLE `shopping_cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
 
 --
 -- AUTO_INCREMENT für Tabelle `users`

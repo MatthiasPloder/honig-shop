@@ -3,158 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Honig-Shop</title>
+    <title>Dashboard - Imkerei Ploder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../styles.css">
-    <style>
-        .dashboard-container {
-            margin: 30px auto;
-            padding: 20px;
-        }
-        .welcome-card {
-            background-color: #fff8e1;
-            border-left: 5px solid #ffc107;
-            margin-bottom: 30px;
-        }
-        .dashboard-card {
-            transition: transform 0.2s;
-            margin-bottom: 20px;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-    </style>
+    <link rel="stylesheet" href="../../styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
+<style>.navigation-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    color: #495057;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.nav-btn i {
+    font-size: 1.1rem;
+}
+
+.nav-btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}</style>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-warning">
-        <div class="container">
-            <a class="navbar-brand" href="../../index.html">
-                <img src="../../assets/images/logo.png" alt="Honig-Shop Logo" height="40">
-                Honig-Shop
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="profile.html">
-                            <i class="bi bi-person-circle"></i> Mein Profil
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link btn btn-link" onclick="handleLogout()">
-                            <i class="bi bi-box-arrow-right"></i> Ausloggen
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="logoutToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Sie wurden erfolgreich ausgeloggt. Sie werden zur Startseite weitergeleitet...
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
+    <div id="content" style="display: none">
+        <!-- Navigation und Footer werden dynamisch geladen -->
         
-        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-exclamation-circle me-2"></i>
-                    Beim Ausloggen ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <!-- Hauptinhalt -->
+        <main class="main-content">
+            <div class="navigation-buttons mb-4">
+                <button class="nav-btn" onclick="window.location.href='/honig-shop/login_user/dashboard/profile.html'">
+                    <i class="bi bi-person"></i> Profil
+                </button>
+                <button class="nav-btn" onclick="window.location.href='/honig-shop/login_user/dashboard/orders.html'">
+                    <i class="bi bi-box-seam"></i> Bestellungen
+                </button>
             </div>
-        </div>
+            <div class="container">
+                <div id="dashboard-content">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="container dashboard-container">
-        <div id="dashboard-content">
-            <!-- Wird dynamisch gefüllt -->
-        </div>
-    </div>
-
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/components.js"></script>
+    <script src="../../assets/js/cart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../assets/js/auth.js"></script>
+    <script src="../../assets/js/init.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', async function() {
-        try {
-            const response = await fetch('../api/dashboard_data.php');
-            const data = await response.json();
-            
-            if (data.status === 'error') {
-                // Bei nicht eingeloggtem Status zum Login weiterleiten
-                window.location.href = '../login.html';
-                return;
-            }
+        // Prüfe Authentifizierung beim Laden
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('../api/check_auth.php');
+                const data = await response.json();
 
-            // Dashboard-Inhalt nur anzeigen wenn erfolgreich eingeloggt
-            if (data.status === 'success') {
-                const dashboardHTML = `
-                    <div class="card welcome-card p-4">
-                        <h2><i class="bi bi-person-check"></i> Willkommen zurück, ${data.email}!</h2>
-                        <p class="mb-0">Schön, dass du wieder da bist. Was möchtest du heute tun?</p>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card dashboard-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Benachrichtigungen</h5>
-                                    <ul class="list-unstyled">
-                                        ${data.notifications.map(note => `
-                                            <li><i class="bi bi-bell"></i> ${note}</li>
-                                        `).join('')}
-                                    </ul>
+                if (!data.isLoggedIn || data.status !== 'success') {
+                    // Nicht eingeloggt - zurück zum Login
+                    window.location.href = '../login.html';
+                    return;
+                }
+
+                // Benutzer ist eingeloggt - zeige Inhalt
+                document.getElementById('content').style.display = 'block';
+
+                // Lade Dashboard-Daten
+                const dashboardResponse = await fetch('../api/get_dashboard_data.php');
+                const dashboardData = await dashboardResponse.json();
+
+                if (dashboardData.status === 'success') {
+                    const dashboardHTML = `
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Willkommen, ${data.user.email}!</h5>
+                                        <p class="card-text">Ihre Benutzer-ID: ${data.user.id}</p>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- Weitere Dashboard-Elemente hier -->
                         </div>
-                    </div>
-                `;
-                document.getElementById('dashboard-content').innerHTML = dashboardHTML;
+                    `;
+                    document.getElementById('dashboard-content').innerHTML = dashboardHTML;
+                }
+            } catch (error) {
+                console.error('Fehler:', error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Zugriff verweigert',
+                    text: 'Bitte melden Sie sich an.',
+                    confirmButtonText: 'Zum Login'
+                });
+                window.location.href = '../login.html';
             }
-        } catch (error) {
-            console.error('Fehler beim Laden der Dashboard-Daten:', error);
-            // Bei Fehlern auch zum Login weiterleiten
-            window.location.href = '../login.html';
-        }
-    });
-    </script>
+        });
 
-    <script>
         // Logout-Funktion
-        async function handleLogout() {
+        async function logout() {
             try {
-                // Korrigierter Pfad zur process_logout.php (ein Verzeichnis zurück, dann zu api)
                 const response = await fetch('../api/process_logout.php');
                 const data = await response.json();
                 
                 if (data.status === 'success') {
-                    // Toast anzeigen
-                    const toast = new bootstrap.Toast(document.getElementById('logoutToast'));
-                    toast.show();
-                    
-                    // Nach kurzer Verzögerung zur Startseite weiterleiten
-                    setTimeout(() => {
-                        window.location.href = '../../index.html';
-                    }, 1500);
-                } else {
-                    throw new Error(data.message || 'Fehler beim Ausloggen');
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Logout erfolgreich',
+                        text: 'Sie sind jetzt ausgeloggt.',
+                        confirmButtonText: 'Zum Login'
+                    });
+                    window.location.href = '../login.html';
                 }
             } catch (error) {
-                console.error('Logout error:', error);
-                // Fehlermeldung anzeigen
-                const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
-                errorToast.show();
+                console.error('Fehler:', error);
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Logout fehlgeschlagen',
+                    text: 'Bitte versuchen Sie es erneut.',
+                    confirmButtonText: 'Zum Login'
+                });
+                window.location.href = '../login.html';
             }
         }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/auth.js"></script>
 </body>
 </html>

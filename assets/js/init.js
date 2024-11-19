@@ -1,40 +1,31 @@
 class PageInitializer {
-    static async waitForElement(selector) {
-        while (!document.querySelector(selector)) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        return document.querySelector(selector);
-    }
-
     static async init() {
         try {
-            // Komponenten laden
+            // Lade Navigation und Footer
             await Components.init();
             
-            // Warte auf die Navigation-Elemente
-            await this.waitForElement('#accountText');
-            await this.waitForElement('#accountDropdown');
+            // Prüfe Login-Status
+            await AuthService.checkLoginStatus();
             
-            // Login-Status prüfen
-            await checkLoginStatus();
-            
-            // Warenkorb initialisieren
-            const cart = new ShoppingCart();
-            cart.updateCartCount();
-
-            // Wenn wir auf der Produkteseite sind, lade die Produkte
+            // Lade Produkte nur auf der Produktseite
             if (window.location.pathname.includes('produkte.html')) {
                 await loadProducts();
             }
             
-            console.log('Initialisierung abgeschlossen');
+            // Initialisiere Warenkorb wenn die Funktion existiert
+            if (typeof initializeCart === 'function') {
+                await initializeCart();
+            }
+            
+            // Zeige den Content
+            document.body.style.visibility = 'visible';
         } catch (error) {
             console.error('Fehler bei der Initialisierung:', error);
         }
     }
 }
 
-// Globale Initialisierung für alle Seiten
-document.addEventListener('DOMContentLoaded', async () => {
-    await PageInitializer.init();
+// Warte bis das Dokument geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    PageInitializer.init();
 }); 

@@ -1,79 +1,85 @@
 <?php
 session_start();
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+header('Content-Type: application/json');
 
-// Check if the form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get form data
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $phonenumber = $_POST['phone_number'];  
-    $firstname = $_POST['first_name'];
-    $lastname = $_POST['last_name'];
-    $shippingadress = $_POST['shipping_address']; 
-	$confirm_password = $_POST['confirm_password']; 
+// Empfange JSON-Daten
+$json = file_get_contents('php://input');
+$data = json_decode($json, true);
 
-    // Hash the password
-	if ($password !== $confirm_password) {
-		
-		$error = "Password does not match";
-		echo $error;			
-		exit();
-		
-	} else {
-	$hashed_password = password_hash($password, PASSWORD_BCRYPT);	
-		
-	}
-    
-    // Database credentials
-    $host = 'localhost';  
-    $db   = 'honig_shop';      
-    $user = 'root';       
-    $pass = '';           
+if ($_SERVER["REQUEST_METHOD"] == "POST" && $data) {
+    // Daten aus dem JSON-Request
+    $email = $data['email'];
+    $password = $data['password'];
+    $firstname = $data['first_name'];
+    $lastname = $data['last_name'];
+    $confirm_password = $data['confirm_password'];
 
-    // Create a connection to the MySQL database
-    $mysqli = new mysqli($host, $user, $pass, $db);
-
-    // Check the connection
-    if ($mysqli->connect_error) {
-        die('Connection failed: ' . $mysqli->connect_error);
+    // Validierung
+    if ($password !== $confirm_password) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Passwörter stimmen nicht überein'
+        ]);
+        exit();
     }
 
-    // Check if the email already exists
-    $stmt = $mysqli->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $stmt->store_result();
+    // Password hashen
+    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
-    // If email exists
-    if ($stmt->num_rows > 0) {
-        $error = "Email already registered!";
-		echo $error;
-		
-    } else {
-        // Insert the new user into the database
-        $stmt = $mysqli->prepare("INSERT INTO users (email, first_name, last_name, phone_number, shipping_address, password_hash) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $email, $firstname, $lastname, $phonenumber, $shippingadress, $hashed_password);
-        $stmt->execute();
+    // Datenbankverbindung
+    $host = 'localhost';
+    $db   = 'honig_shop';
+    $user = 'root';
+    $pass = '';
 
-        // Check if the query was successful
-        if ($stmt->affected_rows > 0) {
-            // Registration successful, redirect to login page with a success message
-            $_SESSION['register_success'] = "Registration successful! You can now log in.";
-            header('Location: login.html');
-            exit();
-        } else {
-            $error = "Error saving data: " . $stmt->error;
+    try {
+        $mysqli = new mysqli($host, $user, $pass, $db);
 
-			echo "Error saving data";
+        if ($mysqli->connect_error) {
+            throw new Exception('Datenbankverbindung fehlgeschlagen: ' . $mysqli->connect_error);
         }
+
+        // Prüfe ob Email bereits existiert
+        $stmt = $mysqli->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Diese E-Mail-Adresse ist bereits registriert'
+            ]);
+            exit();
+        }
+
+        // Neuen Benutzer einfügen
+        $stmt = $mysqli->prepare("INSERT INTO users (email, first_name, last_name, password_hash) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $email, $firstname, $lastname, $hashed_password);
+        
+        if ($stmt->execute()) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Registrierung erfolgreich'
+            ]);
+        } else {
+            throw new Exception('Fehler beim Speichern der Daten');
+        }
+
+    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
+    } finally {
+        if (isset($stmt)) $stmt->close();
+        if (isset($mysqli)) $mysqli->close();
     }
-
-
-    // Close the statement and connection
-    $stmt->close();
-    $mysqli->close();
+} else {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Ungültige Anfrage'
+    ]);
 }
 ?>

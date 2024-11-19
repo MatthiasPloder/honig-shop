@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Bestellungen - Honig-Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/honig-shop/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+</head>
+<style>.navigation-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    color: #495057;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.nav-btn i {
+    font-size: 1.1rem;
+}
+
+.nav-btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+</style>
+<body>
+    <div class="dashboard-container">
+        <!-- Navigation wird dynamisch geladen -->
+        <main class="main-content">
+            <div class="navigation-buttons mb-4">
+                <button class="nav-btn" onclick="window.location.href='/honig-shop/login_user/dashboard/dashboard.html'">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </button>
+                <button class="nav-btn" onclick="window.location.href='/honig-shop/login_user/dashboard/profile.html'">
+                    <i class="bi bi-person"></i> Profil
+                </button>
+            </div>
+            <div class="container py-4">
+                <h2 class="mb-4"><i class="bi bi-box-seam me-2"></i>Meine Bestellungen</h2>
+
+                <!-- Filter und Suche -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="order-search" class="form-control" placeholder="Bestellung suchen...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" id="order-filter">
+                            <option value="all">Alle Bestellungen</option>
+                            <option value="pending">In Bearbeitung</option>
+                            <option value="shipped">Versendet</option>
+                            <option value="delivered">Geliefert</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Bestellübersicht -->
+                <div class="orders-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bestellnummer</th>
+                                    <th>Datum</th>
+                                    <th>Produkte</th>
+                                    <th>Status</th>
+                                    <th>Gesamtbetrag</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <!-- Wird dynamisch gefüllt -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bestelldetails Modal -->
+                <div class="modal fade" id="orderDetailsModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Bestelldetails</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="order-details-content">
+                                <!-- Wird dynamisch gefüllt -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/honig-shop/assets/js/components.js"></script>
+    <script src="/honig-shop/assets/js/cart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/honig-shop/assets/js/auth.js"></script>
+    <script src="/honig-shop/assets/js/init.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Bestellungen laden
+            await loadOrders();
+
+            // Event Listener für Filter
+            document.getElementById('order-filter').addEventListener('change', filterOrders);
+            document.getElementById('order-search').addEventListener('input', searchOrders);
+        });
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('/honig-shop/api/orders.php');
+                const orders = await response.json();
+                renderOrders(orders);
+            } catch (error) {
+                console.error('Fehler beim Laden der Bestellungen:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fehler',
+                    text: 'Die Bestellungen konnten nicht geladen werden.'
+                });
+            }
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>#${order.order_id}</td>
+                    <td>${new Date(order.order_date).toLocaleDateString('de-DE')}</td>
+                    <td>${order.items_count} Artikel</td>
+                    <td>
+                        <span class="badge bg-${getStatusBadgeColor(order.order_status)}">
+                            ${getStatusText(order.order_status)}
+                        </span>
+                        <span class="badge bg-${getPaymentStatusBadgeColor(order.payment_status)}">
+                            ${getPaymentStatusText(order.payment_status)}
+                        </span>
+                    </td>
+                    <td>${parseFloat(order.total_price).toFixed(2)} €</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                onclick="showOrderDetails(${order.order_id})">
+                            Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadgeColor(status) {
+            const colors = {
+                'pending': 'warning',
+                'processing': 'info',
+                'shipped': 'primary',
+                'delivered': 'success',
+                'cancelled': 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function getPaymentStatusBadgeColor(status) {
+            const colors = {
+                'unpaid': 'danger',
+                'paid': 'success',
+                'failed': 'danger',
+                'refunded': 'warning',
+                'processing': 'info'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'pending': 'In Bearbeitung',
+                'processing': 'Wird bearbeitet',
+                'shipped': 'Versendet',
+                'delivered': 'Geliefert',
+                'cancelled': 'Storniert'
+            };
+            return texts[status] || status;
+        }
+
+        function getPaymentStatusText(status) {
+            const texts = {
+                'unpaid': 'Nicht bezahlt',
+                'paid': 'Bezahlt',
+                'failed': 'Fehlgeschlagen',
+                'refunded': 'Erstattet',
+                'processing': 'In Bearbeitung'
+            };
+            return texts[status] || status;
+        }
+
+        async function showOrderDetails(orderId) {
+            try {
+                const response = await fetch(`/honig-shop/api/order_details.php?id=${orderId}`);
+                const details = await response.json();
+                
+                const modalContent = document.getElementById('order-details-content');
+                modalContent.innerHTML = `
+                    <div class="order-details">
+                        <h6>Bestellnummer: #${details.order_id}</h6>
+                        <p>Bestelldatum: ${new Date(details.order_date).toLocaleDateString('de-DE')}</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h6>Lieferadresse:</h6>
+                                <p class="mb-0">${details.shipping_address}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Rechnungsadresse:</h6>
+                                <p class="mb-0">${details.billing_address}</p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <div class="products-list">
+                            ${details.items.map(item => `
+                                <div class="product-item d-flex justify-content-between align-items-center mb-2">
+                                    <span>${item.quantity}x ${item.productname}</span>
+                                    <span>${(item.price * item.quantity).toFixed(2)} €</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Gesamtbetrag:</strong>
+                            <strong>${parseFloat(details.total_price).toFixed(2)} €</strong>
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-${getStatusBadgeColor(details.order_status)}">
+                                ${getStatusText(details.order_status)}
+                            </span>
+                            <span class="badge bg-${getPaymentStatusBadgeColor(details.payment_status)}">
+                                ${getPaymentStatusText(details.payment_status)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+                new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+            } catch (error) {
+                console.error('Fehler beim Laden der Bestelldetails:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Fehler',
+                    text: 'Die Bestelldetails konnten nicht geladen werden.'
+                });
+            }
+        }
+
+        // Neue Funktionen hinzufügen
+        function filterOrders() {
+            const filterValue = document.getElementById('order-filter').value;
+            const rows = document.querySelectorAll('#orders-table-body tr');
+            
+            rows.forEach(row => {
+                const statusCell = row.querySelector('td:nth-child(4)');
+                const statusText = statusCell.textContent.trim().toLowerCase();
+                
+                if (filterValue === 'all' || statusText.includes(filterValue.toLowerCase())) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function searchOrders() {
+            const searchValue = document.getElementById('order-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#orders-table-body tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .orders-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .order-details {
+            padding: 15px;
+        }
+
+        .product-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</body>
+</html>
