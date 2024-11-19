@@ -1,19 +1,31 @@
 <?php
 require_once('../includes/Auth.php');
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', '../error.log');
+require_once('../includes/RateLimiter.php');
+
+// Strikte Konfiguration
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
 
 header('Content-Type: application/json');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('X-Content-Type-Options: nosniff');
 
 try {
-    // Lese JSON-Daten aus dem Request-Body
+    $mysqli = new mysqli('localhost', 'root', '', 'honig_shop');
+    $mysqli->set_charset('utf8mb4');
+
+    // Rate Limiting prüfen
+    $rateLimiter = new RateLimiter($mysqli);
+    $rateLimiter->checkRateLimit($_SERVER['REMOTE_ADDR']);
+
     $jsonData = file_get_contents('php://input');
     $data = json_decode($jsonData, true);
 
     if (!$data || !isset($data['email']) || !isset($data['password'])) {
-        throw new Exception('Bitte E-Mail und Passwort eingeben');
+        throw new Exception('Ungültige Anfrage');
     }
 
     $email = filter_var($data['email'], FILTER_VALIDATE_EMAIL);
@@ -23,44 +35,55 @@ try {
         throw new Exception('Ungültige E-Mail-Adresse');
     }
 
-    // Datenbankverbindung
-    $mysqli = new mysqli('localhost', 'root', '', 'honig_shop');
-    $mysqli->set_charset('utf8mb4');
-
-    if ($mysqli->connect_error) {
-        throw new Exception('Datenbankverbindung fehlgeschlagen');
-    }
-
-    // Benutzer in der Datenbank suchen
+    // Zeitkonstanter Vergleich für die E-Mail-Suche
     $stmt = $mysqli->prepare("
-        SELECT user_id, email, password_hash 
+        SELECT user_id, email, password_hash, account_status, failed_attempts
         FROM users 
         WHERE email = ? 
         LIMIT 1
     ");
-
-    if (!$stmt) {
-        throw new Exception('Datenbankabfrage fehlgeschlagen');
-    }
-
+    
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
+    // Konstante Zeit simulieren, auch wenn Benutzer nicht existiert
     if (!$user) {
-        throw new Exception('Benutzer nicht gefunden');
+        password_verify($password, '$2y$10$abcdefghijklmnopqrstuvwxyz012345');
+        $rateLimiter->logAttempt($_SERVER['REMOTE_ADDR'], $email, 0);
+        throw new Exception('Ungültige Anmeldedaten');
+    }
+
+    // Prüfen ob Account gesperrt ist
+    if ($user['account_status'] === 'locked') {
+        throw new Exception('Ihr Account wurde gesperrt. Bitte kontaktieren Sie den Support.');
     }
 
     // Passwort überprüfen
     if (!password_verify($password, $user['password_hash'])) {
-        throw new Exception('Falsches Passwort');
+        // Fehlgeschlagene Versuche erhöhen
+        $updateStmt = $mysqli->prepare("
+            UPDATE users 
+            SET failed_attempts = failed_attempts + 1,
+                account_status = CASE 
+                    WHEN failed_attempts + 1 >= 10 THEN 'locked'
+                    ELSE account_status 
+                END
+            WHERE user_id = ?
+        ");
+        $updateStmt->bind_param("i", $user['user_id']);
+        $updateStmt->execute();
+
+        $rateLimiter->logAttempt($_SERVER['REMOTE_ADDR'], $email, 0);
+        throw new Exception('Ungültige Anmeldedaten');
     }
 
-    // Login-Zeit aktualisieren
+    // Erfolgreicher Login - Reset der Fehlversuche
     $updateStmt = $mysqli->prepare("
         UPDATE users 
-        SET last_login = CURRENT_TIMESTAMP,
+        SET failed_attempts = 0,
+            last_login = CURRENT_TIMESTAMP,
             auth_token = ?,
             token_expires = DATE_ADD(NOW(), INTERVAL 30 DAY)
         WHERE user_id = ?
@@ -70,20 +93,27 @@ try {
     $updateStmt->bind_param("si", $authToken, $user['user_id']);
     $updateStmt->execute();
 
-    // Session starten und Benutzer einloggen
+    // Session mit erhöhter Sicherheit starten
     session_start();
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['email'] = $user['email'];
+    $_SESSION['last_activity'] = time();
+    $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
 
-    // Cookie für "Remember Me" setzen
+    $rateLimiter->logAttempt($_SERVER['REMOTE_ADDR'], $email, 1);
+
+    // Sicheres Cookie setzen
     setcookie(
         'auth_token',
         $authToken,
-        time() + (30 * 24 * 60 * 60), // 30 Tage
-        '/',
-        '',
-        true,    // Nur über HTTPS
-        true     // Nur HTTP
+        [
+            'expires' => time() + (30 * 24 * 60 * 60),
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Strict'
+        ]
     );
 
     echo json_encode([
