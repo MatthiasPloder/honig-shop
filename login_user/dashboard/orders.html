@@ -130,6 +130,15 @@
     <script src="/honig-shop/assets/js/init.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
+            
+            // Überprüfe Login-Status
+            const response = await fetch('../api/get_profile.php');
+            const result = await response.json();
+            
+            if (result.status === 'error') {
+                window.location.href = '../login.html';
+                return;
+            }
             // Bestellungen laden
             await loadOrders();
 

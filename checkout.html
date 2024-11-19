@@ -27,6 +27,12 @@
                 </div>
             </div>
 
+            <!-- Nach der Bestellübersicht und vor dem Formular -->
+            <div class="alert alert-info mb-4" role="alert">
+                <i class="bi bi-info-circle"></i>
+                Zahlung erfolgt per Vorkasse. Nach Bestelleingang erhalten Sie eine E-Mail mit unseren Bankdaten.
+            </div>
+
             <!-- Checkout Formular -->
             <form id="checkout-form" class="needs-validation" novalidate>
                 <div class="row">
@@ -80,6 +86,17 @@
                 </div>
 
                 <hr class="my-4">
+
+                <!-- Vor dem Submit-Button -->
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" id="terms" required>
+                    <label class="form-check-label" for="terms">
+                        Ich akzeptiere die AGB und stimme zu, dass ich die Zahlung per Vorkasse innerhalb von 7 Tagen überweise. Die Bestellung wird erst nach Zahlungseingang versandt.
+                    </label>
+                    <div class="invalid-feedback">
+                        Bitte bestätigen Sie die Bedingungen.
+                    </div>
+                </div>
 
                 <button class="btn btn-primary btn-lg w-100" type="submit">
                     Jetzt kostenpflichtig bestellen
