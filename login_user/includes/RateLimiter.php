@@ -2,7 +2,7 @@
 class RateLimiter {
     private $mysqli;
     private $maxAttempts = 5;
-    private $timeWindow = 900; // 1 Minuten in Sekunden
+    private $timeWindow = 900; // 15 Minuten in Sekunden
 
     public function __construct($mysqli) {
         $this->mysqli = $mysqli;

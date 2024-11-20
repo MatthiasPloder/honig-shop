@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Erstellungszeit: 19. Nov 2024 um 11:05
+-- Erstellungszeit: 20. Nov 2024 um 10:00
 -- Server-Version: 10.4.32-MariaDB
 -- PHP-Version: 8.2.12
 
@@ -46,6 +46,28 @@ INSERT INTO `categories` (`category_id`, `category_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Tabellenstruktur für Tabelle `login_attempts`
+--
+
+CREATE TABLE `login_attempts` (
+  `id` int(11) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `attempt_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `success` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Daten für Tabelle `login_attempts`
+--
+
+INSERT INTO `login_attempts` (`id`, `ip_address`, `email`, `attempt_time`, `success`) VALUES
+(25, '::1', 'plodermatthias@gmail.com', '2024-11-20 08:56:52', 1),
+(26, '::1', 'plodermatthias@gmail.com', '2024-11-20 08:56:52', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Tabellenstruktur für Tabelle `orders`
 --
 
@@ -65,7 +87,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `order_date`, `total_price`, `shipping_address`, `billing_address`, `order_status`, `payment_status`, `user_id`) VALUES
-(16, '2024-11-19 09:26:00', 197.50, 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'pending', 'unpaid', 1);
+(16, '2024-11-19 09:26:00', 197.50, 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'pending', 'unpaid', 1),
+(17, '2024-11-19 19:06:46', 41.50, 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'Matthias Ploder\nZerlacherweg 30\n8053 Graz', 'pending', 'unpaid', 1);
 
 -- --------------------------------------------------------
 
@@ -89,7 +112,9 @@ CREATE TABLE `order_items` (
 INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `quantity`, `price`, `total_price`) VALUES
 (7, 16, 1, 3, 8.50, 25.50),
 (8, 16, 2, 8, 17.00, 136.00),
-(9, 16, 3, 4, 9.00, 36.00);
+(9, 16, 3, 4, 9.00, 36.00),
+(10, 17, 9, 1, 16.00, 16.00),
+(11, 17, 7, 3, 8.50, 25.50);
 
 -- --------------------------------------------------------
 
@@ -182,15 +207,18 @@ CREATE TABLE `users` (
   `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_login` timestamp NULL DEFAULT NULL,
   `auth_token` varchar(64) DEFAULT NULL,
-  `token_expires` datetime DEFAULT NULL
+  `token_expires` datetime DEFAULT NULL,
+  `failed_attempts` int(11) DEFAULT 0,
+  `account_status` enum('active','locked') DEFAULT 'active',
+  `last_password_change` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Daten für Tabelle `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `shipping_address`, `billing_address`, `date_created`, `last_login`, `auth_token`, `token_expires`) VALUES
-(1, 'Matthias', 'Ploder', 'plodermatthias@gmail.com', '$2y$10$2KUMGLo3A9JWy8v7Md8yduHOUxaURNUiO2a.KZk.MpUH4cGPW2P3K', '06769019668', '[{\"street\":\"Zerlacherweg 30\",\"postalCode\":\"8053\",\"city\":\"Graz\",\"country\":\"\\u00d6sterreich\"}]', NULL, '2024-11-14 17:19:12', '2024-11-19 09:08:40', 'a07c1ee2c7b1e01e9a9ffbf0bc008a6c54b7142394ddaa6ec299ebd0de942284', '2024-12-19 10:08:40');
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_hash`, `phone_number`, `shipping_address`, `billing_address`, `date_created`, `last_login`, `auth_token`, `token_expires`, `failed_attempts`, `account_status`, `last_password_change`) VALUES
+(1, 'Matthias', 'Ploder', 'plodermatthias@gmail.com', '$2y$10$2KUMGLo3A9JWy8v7Md8yduHOUxaURNUiO2a.KZk.MpUH4cGPW2P3K', '06769019668', '[{\"street\":\"Zerlacherweg 30\",\"postalCode\":\"8053\",\"city\":\"Graz\",\"country\":\"\\u00d6sterreich\"}]', NULL, '2024-11-14 17:19:12', '2024-11-20 08:56:52', '2ecd15566a056088f31b5060159b01cb36b0701aa1ed81e152cd09dfe7aa3fc0', '2024-12-20 09:56:52', 0, 'active', '2024-11-19 20:35:41');
 
 --
 -- Indizes der exportierten Tabellen
@@ -201,6 +229,14 @@ INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `email`, `password_ha
 --
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indizes für die Tabelle `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_login_attempts_ip_time` (`ip_address`,`attempt_time`),
+  ADD KEY `idx_login_attempts_email_time` (`email`,`attempt_time`);
 
 --
 -- Indizes für die Tabelle `orders`
@@ -265,16 +301,22 @@ ALTER TABLE `categories`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT für Tabelle `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
 -- AUTO_INCREMENT für Tabelle `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT für Tabelle `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT für Tabelle `payments`
@@ -298,13 +340,13 @@ ALTER TABLE `shipping`
 -- AUTO_INCREMENT für Tabelle `shopping_cart`
 --
 ALTER TABLE `shopping_cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=150;
 
 --
 -- AUTO_INCREMENT für Tabelle `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints der exportierten Tabellen
