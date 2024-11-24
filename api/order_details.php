@@ -1,21 +1,8 @@
 <?php
 session_start();
+require_once('../config/database.php');
+
 header('Content-Type: application/json');
-
-// Datenbankverbindung
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "honig_shop";
-
-try {
-    $db = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $db->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    echo json_encode(['error' => 'Verbindung fehlgeschlagen: ' . $e->getMessage()]);
-    exit;
-}
 
 // Überprüfen ob Benutzer eingeloggt ist
 if (!isset($_SESSION['user_id'])) {
@@ -33,14 +20,14 @@ $order_id = $_GET['id'];
 
 try {
     // Bestelldetails abrufen
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         SELECT *
         FROM orders
         WHERE order_id = ? AND user_id = ?
     ");
     
     $stmt->execute([$order_id, $user_id]);
-    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    $order = $stmt->fetch();
     
     if (!$order) {
         echo json_encode(['error' => 'Bestellung nicht gefunden']);
@@ -48,7 +35,7 @@ try {
     }
     
     // Bestellte Produkte abrufen
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         SELECT 
             oi.*,
             p.productname
@@ -58,7 +45,7 @@ try {
     ");
     
     $stmt->execute([$order_id]);
-    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $items = $stmt->fetchAll();
     
     $result = [
         'order_id' => $order['order_id'],

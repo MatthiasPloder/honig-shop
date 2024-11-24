@@ -1,21 +1,8 @@
 <?php
 session_start();
+require_once('../config/database.php');
+
 header('Content-Type: application/json');
-
-// Datenbankverbindung
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "honig_shop";
-
-try {
-    $db = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $db->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    echo json_encode(['error' => 'Verbindung fehlgeschlagen: ' . $e->getMessage()]);
-    exit;
-}
 
 // Überprüfen ob Benutzer eingeloggt ist
 if (!isset($_SESSION['user_id'])) {
@@ -26,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 try {
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         SELECT 
             o.order_id,
             o.order_date,
@@ -42,7 +29,7 @@ try {
     ");
     
     $stmt->execute([$user_id]);
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $orders = $stmt->fetchAll();
     
     echo json_encode($orders);
 

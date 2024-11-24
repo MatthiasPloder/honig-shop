@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once('../config/database.php');
 
 header('Content-Type: application/json');
 
@@ -27,26 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $data) {
     // Password hashen
     $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
-    // Datenbankverbindung
-    $host = 'localhost';
-    $db   = 'honig_shop';
-    $user = 'root';
-    $pass = '';
-
     try {
-        $mysqli = new mysqli($host, $user, $pass, $db);
-
-        if ($mysqli->connect_error) {
-            throw new Exception('Datenbankverbindung fehlgeschlagen: ' . $mysqli->connect_error);
-        }
-
         // Prüfe ob Email bereits existiert
-        $stmt = $mysqli->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result();
+        $stmt = $pdo->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
+        $stmt->execute([$email]);
 
-        if ($stmt->num_rows > 0) {
+        if ($stmt->rowCount() > 0) {
             echo json_encode([
                 'status' => 'error',
                 'message' => 'Diese E-Mail-Adresse ist bereits registriert'
@@ -55,26 +42,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && $data) {
         }
 
         // Neuen Benutzer einfügen
-        $stmt = $mysqli->prepare("INSERT INTO users (email, first_name, last_name, password_hash) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $email, $firstname, $lastname, $hashed_password);
+        $stmt = $pdo->prepare("
+            INSERT INTO users (email, first_name, last_name, password_hash) 
+            VALUES (?, ?, ?, ?)
+        ");
         
-        if ($stmt->execute()) {
-            echo json_encode([
-                'status' => 'success',
-                'message' => 'Registrierung erfolgreich'
-            ]);
-        } else {
-            throw new Exception('Fehler beim Speichern der Daten');
-        }
+        $stmt->execute([$email, $firstname, $lastname, $hashed_password]);
 
-    } catch (Exception $e) {
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Registrierung erfolgreich'
+        ]);
+
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
         echo json_encode([
             'status' => 'error',
-            'message' => $e->getMessage()
+            'message' => 'Datenbankfehler beim Registrieren'
         ]);
-    } finally {
-        if (isset($stmt)) $stmt->close();
-        if (isset($mysqli)) $mysqli->close();
     }
 } else {
     echo json_encode([

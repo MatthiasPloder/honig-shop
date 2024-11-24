@@ -2,14 +2,12 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-require_once __DIR__ . '/../includes/db.php';
+require_once('../config/database.php');
 
 header('Content-Type: application/json');
 
 try {
-    $db = Database::getInstance()->getConnection();
-    
-    $stmt = $db->query("
+    $stmt = $pdo->query("
         SELECT 
             product_id,
             productname,
@@ -24,7 +22,7 @@ try {
         ORDER BY productname ASC
     ");
     
-    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $products = $stmt->fetchAll();
     
     if (!$products) {
         echo json_encode([

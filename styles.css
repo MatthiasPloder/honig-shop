@@ -254,3 +254,133 @@ footer a:hover {
     border-radius: 50%;
     background-color: #f8f9fa;
 }
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.category-btn {
+    white-space: nowrap;
+}
+
+.category-btn.btn-primary {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.category-btn.btn-outline-primary {
+    color: #000;
+    border-color: #ffc107;
+}
+
+.category-btn.btn-outline-primary:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+/* Kategorie-Bereich Styling */
+.category-section {
+    background-color: #fff8e1; /* Heller Honig-Farbton */
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.category-title {
+    font-size: 1.2rem;
+    color: #664d03; /* Dunkler Honig-Farbton */
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-btn {
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background-color: white;
+    border: 2px solid #ffc107;
+    color: #664d03;
+}
+
+.category-btn:hover {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.category-btn.active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #664d03;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Filter-Bereich Styling */
+.filter-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.search-input {
+    border: 2px solid #ffc107;
+    border-radius: 25px;
+    padding: 8px 20px;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+    border-color: #ffc107;
+}
+
+.sort-select {
+    border: 2px solid #ffc107;
+    border-radius: 25px;
+    padding: 8px 20px;
+    background-color: white;
+    color: #664d03;
+}
+
+.sort-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+    border-color: #ffc107;
+}
+
+/* Minimales zusätzliches CSS für feine Anpassungen */
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    transition: all 0.2s ease;
+}
+
+.category-btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-warning, 
+.btn-outline-warning {
+    color: #000;
+}
+
+.btn-warning.active {
+    font-weight: 500;
+}

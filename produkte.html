@@ -16,13 +16,23 @@
     <main class="main-content">
         <div class="container py-5">
             <h2 class="mb-4">Unsere Produkte</h2>
-            
+
+            <!-- Kategorie-Buttons -->
+            <div class="mb-4">
+                <div class="category-buttons">
+                    <button class="btn btn-warning me-2 mb-2 category-btn active" data-category="all">
+                        Alle Produkte
+                    </button>
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+
             <!-- Filter und Sortierung -->
             <div class="row mb-4">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3 mb-md-0">
                     <div class="input-group">
                         <input type="text" id="search-input" class="form-control" placeholder="Produkte suchen...">
-                        <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                        <button class="btn btn-warning" type="button" id="search-btn">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
@@ -37,9 +47,9 @@
                 </div>
             </div>
 
-            <!-- Produktliste -->
+            <!-- Produkt-Container -->
             <div class="row" id="products-container">
-                <!-- Produkte werden dynamisch eingefügt -->
+                <!-- Wird dynamisch gefüllt -->
             </div>
         </div>
     </main>

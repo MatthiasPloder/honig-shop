@@ -1,21 +1,8 @@
 <?php
 session_start();
+require_once('../config/database.php');  // Neue zentrale Datenbankverbindung
+
 header('Content-Type: application/json');
-
-// Datenbankverbindung
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "honig_shop";
-
-try {
-    $db = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $db->exec("SET NAMES utf8");
-} catch(PDOException $e) {
-    echo json_encode(['error' => 'Verbindung fehlgeschlagen: ' . $e->getMessage()]);
-    exit;
-}
 
 // POST-Daten empfangen
 $data = json_decode(file_get_contents('php://input'), true);
@@ -26,10 +13,10 @@ if (!$data) {
 }
 
 try {
-    $db->beginTransaction();
+    $pdo->beginTransaction();
 
     // Bestellung erstellen
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         INSERT INTO orders (
             order_date, 
             total_price, 
@@ -57,10 +44,10 @@ try {
         $user_id
     ]);
 
-    $order_id = $db->lastInsertId();
+    $order_id = $pdo->lastInsertId();
 
     // Bestellpositionen erstellen
-    $stmt = $db->prepare("
+    $stmt = $pdo->prepare("
         INSERT INTO order_items (
             order_id, 
             product_id, 
@@ -81,11 +68,11 @@ try {
         ]);
     }
 
-    $db->commit();
+    $pdo->commit();
     echo json_encode(['success' => true, 'order_id' => $order_id]);
 
 } catch(PDOException $e) {
-    $db->rollBack();
+    $pdo->rollBack();
     echo json_encode(['error' => 'Datenbankfehler: ' . $e->getMessage()]);
 }
 ?> 
